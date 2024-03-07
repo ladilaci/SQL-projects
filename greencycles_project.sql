@@ -264,9 +264,172 @@ WHERE DATE(payment_date) IN ('2020-04-28', '2020-04-29', '2020-04-30')
 GROUP BY customer_id, DATE(payment_date)
 HAVING COUNT(*)>3
 ORDER BY 3 DESC
-	
 
+--
 
+SELECT
+	LOWER(email) AS email_lower,
+	email,
+	LENGTH(email)
+FROM customer
+WHERE LENGTH(email) < 30
 
+--
 
+SELECT
+	LOWER(first_name),
+	LOWER(last_name),
+	LOWER(email)
+FROM customer
+WHERE LENGTH(first_name) > 10
+OR LENGTH(last_name) > 10
 
+--
+
+SELECT
+	RIGHT(LEFT(first_name,2),1),
+	first_name
+FROM customer
+
+-- How can you extract just the dot"." from the email adress?
+
+SELECT
+	LEFT(RIGHT(email,4), 1)
+	email
+FROM customer
+
+--
+
+SELECT
+	LEFT(email, 1) || '***' || RIGHT(email, 19) AS anonymized_email
+FROM customer
+
+--
+
+SELECT
+	LEFT(email, POSITION(last_name IN email)-2),
+email
+FROM customer
+
+--
+
+SELECT
+	last_name || ', '|| LEFT(email, POSITION(last_name IN email)-2) AS full_name
+FROM customer
+
+--
+
+SELECT
+email,
+SUBSTRING (email from POSITION ('.' in email)+1 for POSITION('@' in email)-POSITION('.' in email)-1)
+FROM customer
+
+--
+
+SELECT
+	LEFT(email,1) 
+	|| '***' 
+	|| SUBSTRING(email from POSITION('.' in email) for 2)
+	|| '***' 
+	||SUBSTRING(email from POSITION('@' in email))
+FROM customer
+
+--
+
+SELECT 
+	'***' 
+	|| SUBSTRING(email from POSITION('.' in email)-1 for 3)
+	|| '***' 
+	||SUBSTRING(email from POSITION('@' in email))
+FROM customer
+
+-- EXTRACT
+
+SELECT
+EXTRACT(month from rental_date),
+COUNT(*)
+FROM rental
+GROUP BY EXTRACT(month from rental_date)
+ORDER BY COUNT(*) DESC
+
+-- What's the month with the highest total payment amount?
+
+SELECT
+EXTRACT(month from payment_date) as month,
+SUM(amount) AS total_payment_amount
+FROM payment
+GROUP BY month
+ORDER BY total_payment_amount DESC
+
+--What's the day of week with the highest total payment amount?
+
+SELECT
+EXTRACT(dow from payment_date) as day_of_week,
+SUM(amount) as total_payment_amount
+FROM payment
+GROUP BY day_of_week
+ORDER BY total_payment_amount DESC
+
+-- What's the highest amount one customer has spent in a week?
+
+SELECT
+customer_id,
+EXTRACT(week from payment_date) as week,
+SUM(amount) as total_payment_amount
+FROM payment
+GROUP BY week, customer_id
+ORDER BY total_payment_amount DESC
+
+--
+
+SELECT
+SUM(amount),
+To_CHAR(payment_date,'Dy, Month YYYY')
+FROM payment
+GROUP BY To_CHAR(payment_date,'Dy, Month YYYY')
+
+--
+
+SELECT
+SUM(amount) AS total_payment,
+TO_CHAR(payment_date,'Dy, DD/MM/YYYY') AS day
+FROM payment
+GROUP BY day
+ORDER BY total_payment DESC
+
+--
+
+SELECT
+SUM(amount),
+TO_CHAR(payment_date,'Mon,YYYY') AS mon_year
+FROM payment
+GROUP BY mon_year
+ORDER BY SUM(amount)
+
+--
+
+SELECT
+SUM(amount),
+TO_CHAR(payment_date,'Dy, HH:MI') AS day
+FROM payment
+GROUP BY day
+ORDER BY SUM(amount)
+
+--
+
+SELECT
+customer_id,
+return_date-rental_date as rental_duration
+FROM rental
+WHERE customer_id=35
+
+--
+
+SELECT
+customer_id,
+AVG(return_date-rental_date) as rental_duration
+FROM rental
+GROUP BY customer_id
+ORDER BY rental_duration DESC
+
+--
